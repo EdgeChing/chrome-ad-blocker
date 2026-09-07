@@ -1,0 +1,35 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Project: chrome-ad-blocker — Chrome MV3 ad-blocking extension (greenfield, no code yet)
+  Tech stack: JavaScript, Manifest V3 — service-worker background + per-tab content script
+  Architecture: dual-layer blocking — declarativeNetRequest network layer + DOM cleanup layer (MutationObserver for SPA re-renders)
+  State: chrome.storage.local holds rule state, per-site whitelist, remote-list ETags (service worker can be killed at any time)
+  Rule sources: AdGuard / EasyList / EasyList China filter lists parsed into DNR + cosmetic rules; batch updates to respect DNR quotas (~512 rules/update)
+  Testing: unit tests for the filter parser; E2E via Playwright with the extension loaded (planned in design doc, tooling not yet installed)
+  Style: no linter/formatter/test framework configured yet — pin toolchain decisions in the first change
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages (background SW, content script, options page, rule pipeline)
+    - Ground decisions in the design doc at D:\Cash Project\test\chrome-ad-blocker-plugin-plan.txt when relevant
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows (e.g., remote rule-list fetch → parse → DNR update lifecycle)
+    - Document architecture decisions with rationale; respect MV3 constraints (service-worker lifecycle, DNR update quotas, no persistent in-memory state)
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant coding skills for the project stack
+  verify:
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas (large removals)

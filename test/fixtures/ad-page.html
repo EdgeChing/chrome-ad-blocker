@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ad Blocker — manual test fixture</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        line-height: 1.5;
+      }
+      .slot {
+        border: 1px dashed #999;
+        padding: 0.75rem;
+        margin: 0.75rem 0;
+      }
+      code {
+        background: #f2f2f2;
+        padding: 0.1rem 0.3rem;
+        border-radius: 3px;
+      }
+      #fire {
+        font-size: 1rem;
+        padding: 0.4rem 0.9rem;
+        cursor: pointer;
+      }
+      ul {
+        margin: 0.25rem 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ad blocker fixture page</h1>
+    <p>
+      Companion for <code>test/manual-checklist.md</code>. Open DevTools &gt; Network and watch
+      request statuses: blocked requests report <code>net::ERR_BLOCKED_BY_CLIENT</code> /
+      <code>(blocked:…)</code>; non-blocked failures (DNS/404) look different — that distinction is
+      what we test.
+    </p>
+
+    <button id="fire" type="button">Re-fire ad + control requests (no page reload)</button>
+    <p>
+      Use this button for the “Immediate Effect Both Ways Without Page Reload” checks: toggle the
+      popup, press the button, compare results — no reload needed.
+    </p>
+
+    <h2>Seeded sub-resources (must be <code>ERR_BLOCKED_BY_CLIENT</code> while ON)</h2>
+    <div class="slot" id="seeded">
+      <ul id="seeded-list">
+        <li>
+          <code>https://doubleclick.net/ad-banner.png</code> — global (ad-blocking: “Ad asset
+          blocked” / “Global tracker blocked”)
+        </li>
+        <li>
+          <code>https://cpro.baidu.com/cpro.js</code> — Baidu Union script (ad-blocking: “Known CN
+          network blocked”)
+        </li>
+        <li>
+          <code>https://example.com/</code> — control (ad-blocking: “Non-matching request passes” —
+          must NOT be blocked)
+        </li>
+      </ul>
+    </div>
+
+    <h2>Main-frame navigation must NOT be blocked</h2>
+    <p>
+      (ad-blocking: “Direct navigation to an ad-domain URL”) Click below or type the URL yourself —
+      the document navigation itself must be attempted, never answered with
+      <code>ERR_BLOCKED_BY_CLIENT</code>:
+    </p>
+    <p>
+      <a id="nav-link" href="https://doubleclick.net/"
+        >Navigate top-level to seeded domain doubleclick.net</a
+      >
+    </p>
+
+    <h2>Visible residue placeholder (accepted MVP limitation)</h2>
+    <!-- extension-shell: “Cosmetic/DOM Layer Out of Scope” — this empty ad slot involves no
+         seeded-domain request, so it intentionally still renders while blocking is ON. -->
+    <div class="slot">
+      <strong>[ AD PLACEHOLDER — served same-origin, no network request ]</strong> — this box MAY
+      stay visible with blocking ON (no cosmetic layer in this version).
+    </div>
+
+    <script>
+      // Keep URLs in sync with rules.json seed entries. The example.com control resolves and
+      // returns 200/404 normally — crucially it is NEVER blocked.
+      var REQUESTS = [
+        { url: "https://doubleclick.net/ad-banner.png", kind: "img", seeded: true },
+        { url: "https://cpro.baidu.com/cpro.js", kind: "script", seeded: true },
+        { url: "https://example.com/", kind: "img", seeded: false }, // control: unseeded, loads fine
+      ];
+
+      function fireAll() {
+        var seq = Date.now(); // cache-bust so Chrome cannot serve from memory cache
+        REQUESTS.forEach(function (req, i) {
+          var el =
+            req.kind === "img" ? document.createElement("img") : document.createElement("script");
+          var sep = req.url.indexOf("?") === -1 ? "?" : "&";
+          el.src = req.url + sep + "cb=" + seq + "-" + i;
+          el.style.display = "none";
+          document.body.appendChild(el);
+        });
+      }
+
+      document.getElementById("fire").addEventListener("click", fireAll);
+      fireAll();
+    </script>
+  </body>
+</html>

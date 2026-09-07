@@ -1,0 +1,6 @@
+node_modules/
+coverage/
+# SDD planning artifacts & vendored docs — audit trail, not source; do not reformat
+.atl/
+files/
+openspec/

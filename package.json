@@ -1,0 +1,24 @@
+{
+  "name": "chrome-ad-blocker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome MV3 ad blocker: declarativeNetRequest seed rules with a popup on/off toggle",
+  "type": "module",
+  "engines": {
+    "node": "22.19.0",
+    "npm": "11.6.2"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.0.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ad Blocker</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <label class="row" title="Turn all network ad blocking on or off">
+        <span class="label-text">Ad blocking</span>
+        <input type="checkbox" id="blocking-toggle" class="toggle-input" />
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+      </label>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
