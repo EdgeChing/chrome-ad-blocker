@@ -2,10 +2,18 @@
   "manifest_version": 3,
   "name": "Ad Blocker",
   "version": "0.1.0",
-  "description": "Network-layer ad and tracker blocking via packaged declarativeNetRequest seed rules, with a one-click global toggle.",
-  "permissions": ["declarativeNetRequest", "storage"],
+  "description": "Network-layer ad and tracker blocking via packaged declarativeNetRequest rules, user-confirmed per-host blocks with in-page prompts, and a one-click global toggle.",
+  "permissions": ["declarativeNetRequest", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },
   "action": { "default_popup": "popup/popup.html" },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["classify.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "declarative_net_request": {
     "rule_resources": [{ "id": "ad_rules", "path": "rules.json", "enabled": false }]
   }

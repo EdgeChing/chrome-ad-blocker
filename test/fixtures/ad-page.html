@@ -38,6 +38,14 @@
       <code>(blocked:…)</code>; non-blocked failures (DNS/404) look different — that distinction is
       what we test.
     </p>
+    <p>
+      <strong>Detection items below require an <code>http(s)</code> origin.</strong> The manifest's
+      content script matches <code>http://*/*</code> and <code>https://*/*</code> only —
+      <code>file://</code> pages get NO content script and therefore no toast. Serve the repo (<code
+        >npx serve .</code
+      >) and open <code>http://localhost:3000/test/fixtures/ad-page.html</code> for toast/detection
+      checks.
+    </p>
 
     <button id="fire" type="button">Re-fire ad + control requests (no page reload)</button>
     <p>
@@ -59,6 +67,17 @@
         <li>
           <code>https://example.com/</code> — control (ad-blocking: “Non-matching request passes” —
           must NOT be blocked)
+        </li>
+      </ul>
+    </div>
+
+    <h2>Unseeded ad-pattern source (must NOT be blocked yet — toast territory)</h2>
+    <div class="slot" id="unseeded">
+      <ul id="unseeded-list">
+        <li>
+          <code>https://cdn.adstats-lab.net/track/pixel.gif</code> — third-party + ad-path token
+          (<code>track</code>), NOT in rules.json: on an http(s) origin the content script must
+          report it and the SW may prompt one toast per session (ad-detect-block-toast).
         </li>
       </ul>
     </div>
@@ -90,6 +109,9 @@
         { url: "https://doubleclick.net/ad-banner.png", kind: "img", seeded: true },
         { url: "https://cpro.baidu.com/cpro.js", kind: "script", seeded: true },
         { url: "https://example.com/", kind: "img", seeded: false }, // control: unseeded, loads fine
+        // Unseeded but gate-passing (3rd-party + `track` path token): must surface a toast
+        // on http(s) origins and must NOT be blocked until the user confirms it.
+        { url: "https://cdn.adstats-lab.net/track/pixel.gif", kind: "img", seeded: false },
       ];
 
       function fireAll() {

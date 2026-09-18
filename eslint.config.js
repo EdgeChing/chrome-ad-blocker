@@ -8,7 +8,7 @@ export default [
   js.configs.recommended,
   {
     // Extension runtime files: classic scripts in browser / service-worker context.
-    files: ["background.js", "popup/**/*.js"],
+    files: ["background.js", "classify.js", "content.js", "popup/**/*.js"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "script",
@@ -16,6 +16,9 @@ export default [
         ...globals.browser,
         ...globals.serviceworker,
         ...globals.webextensions,
+        // Cross-script runtime global published by classify.js (content-script
+        // isolated world + SW importScripts context).
+        AdClassify: "readonly",
       },
     },
   },

@@ -96,3 +96,76 @@ body {
 .status.warn {
   color: #b45309;
 }
+
+/* --- Detected ad sources (per-host blocklist growth only; A5: the toggle above
+   remains the ONLY global control). --- */
+
+.sources {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sources-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.detected {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detected-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.favicon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.host {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blocked {
+  flex: none;
+}
+
+.block-btn {
+  flex: none;
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.block-btn:hover:not(:disabled) {
+  background: #eef2f7;
+}
+
+.block-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

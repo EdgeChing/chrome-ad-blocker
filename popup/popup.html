@@ -13,6 +13,15 @@
         <span class="track" aria-hidden="true"><span class="thumb"></span></span>
       </label>
       <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <!-- Per-tab detected ad sources (popup-ui spec). Query-on-open only; the
+           toggle above stays the SOLE global control [A5] — these rows are
+           per-host blocklist growth only, never allowlisting. -->
+      <section class="sources" aria-labelledby="sources-title">
+        <h2 id="sources-title" class="sources-title">Detected ad sources</h2>
+        <ul id="detected-list" class="detected"></ul>
+        <p id="sources-status" class="status" role="status" aria-live="polite"></p>
+      </section>
     </main>
     <script src="popup.js"></script>
   </body>

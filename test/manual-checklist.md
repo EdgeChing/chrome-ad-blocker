@@ -1,10 +1,15 @@
-# Manual Test Checklist — Ad Blocker (MV3 + declarativeNetRequest + popup toggle)
+# Manual Test Checklist — Ad Blocker (MV3 + declarativeNetRequest + popup toggle + detect-toast)
 
 Companion to `test/fixtures/ad-page.html`. Each item is keyed to the spec scenario(s) it
 verifies. Scenario names are quoted verbatim from
 `openspec/changes/…/specs/{ad-blocking,extension-shell,popup-ui}/spec.md`.
 Fast OFF-ON-OFF convergence and message-contract validation are additionally covered by unit
 tests (`npx vitest --run`); do the manual passes below for real-browser network behavior.
+
+> **Release note (ad-detect-block-toast):** this change adds the `tabs` permission and
+> `host_permissions: ["<all_urls>"]` (page-scoped detection + toast). **Existing installs see
+> elevated-permission warnings on update, and the Chrome Web Store may require re-consent** —
+> call this out in the store listing / release notes before publishing.
 
 **Legend**: every “blocked” observation = DevTools → Network row shows
 `net::ERR_BLOCKED_BY_CLIENT` and/or a `(blocked:ad_rules)` / “blocked by extension” note on the
@@ -15,10 +20,11 @@ request. A DNS error or 404 is **not** blocked — the distinction matters when 
 1. **Load unpacked** — `chrome://extensions` → enable **Developer mode** → **Load unpacked** →
    select the **repo root** (`chrome-ad-blocker/`). The card shows “Ad Blocker 0.1.0” with no
    errors. _(extension-shell: “Minimal Packaged Capability” — everything ships packaged.)_
-2. **Fixture** — open `test/fixtures/ad-page.html` (via `file://` is fine; if file-scheme
-   requests behave oddly, serve the repo with any static server, e.g. `npx serve .`, and open
-   `http://localhost:3000/test/fixtures/ad-page.html`). Open its DevTools → Network, keep it
-   filtered onImg/JS.
+2. **Fixture** — **serve the repo over http**: `npx serve .` and open
+   `http://localhost:3000/test/fixtures/ad-page.html`. Plain `file://` is fine for the seeded
+   network checks below, but **`file://` gets NO content script** — every toast/detection item
+   (19+) REQUIRES the http origin. Open its DevTools → Network, keep it
+   filtered on Img/JS.
 
 ## Fresh install & default ON
 
@@ -103,7 +109,49 @@ request. A DNS error or 404 is **not** blocked — the distinction matters when 
     and shows the error line — it never shows the requested state as if applied. Reopen popup →
     ground truth re-read. _(popup-ui: “Applied change unconfirmed”.)_
 
+## Detection toast & user-confirmed blocks (http origin required — items 19–27)
+
+19. **Toast appears once per host per session** — fresh http fixture page, blocking ON: within a
+    few seconds a dark toast bottom-right names `cdn.adstats-lab.net` (or the tab-local ad source)
+    and states blocking starts **at the next reload — won't remove this one**. Press the fixture's
+    **Re-fire** button repeatedly: NO second toast for the same host this session.
+    _(ad-blocking: “Once per host per session”.)_
+20. **Dismiss sticks** — press × (or wait ~8 s for auto-dismiss): toast disappears; re-fire: it
+    does NOT come back this session. _(ad-blocking: “Once per host per session”.)_
+21. **Confirm swaps the ack honestly** — re-open the page in a new tab (new session) or use a
+    second unseeded ad-pattern URL; press **Block** in the toast: the message swaps to the
+    confirmation (“will be blocked starting at the next reload”). Failures (e.g., stop the SW to
+    force it) show the error text instead — never a fake confirmation.
+    _(ad-blocking: “User-Confirmed Dynamic Blocklist”; popup honesty.)_
+22. **Confirm blocks on reload** — after confirming, reload the fixture: the confirmed host's
+    request now reports `ERR_BLOCKED_BY_CLIENT` / `(blocked:…)`; the rest of the page still loads.
+    Before confirming it never was blocked (non-retroactivity). _(ad-blocking: “Confirm blocks on
+    reload”.)_
+23. **Survives restart, deduped** — fully quit Chrome, relaunch, open the popup: the confirmed
+    host is listed with 🚫; DevTools Network on re-fire still blocked; in the SW console
+    `chrome.declarativeNetRequest.getDynamicRules()` shows EXACTLY ONE rule for the host (id
+    ≥ 1000, `urlFilter "||<host>^"`, no `resourceTypes`). Confirming again adds nothing.
+    _(ad-blocking: “Persist and dedupe”.)_
+24. **Popup shows detections** — open the popup on the fixture tab: “Detected ad sources” lists
+    the domains seen on that tab with the page favicon (or a local letter glyph offline), 🚫 on
+    blocked ones only, a **Block** button on unblocked ones. Other tabs show only their own
+    detections. _(popup-ui: “List on open”, “Per-tab isolation”, “Favicon unreachable”,
+    “Offline retained”.)_
+25. **First-party never offered** — nothing from the page's own origin (same registrable domain,
+    including `*.localhost` oddities or `example.com` vs `notexample.com` confusion) ever appears
+    as a toast or in the list. _(ad-blocking: “Conservative gate rejects”; popup-ui: first-party
+    never offered.)_
+26. **OFF respected end-to-end** — flip the popup toggle OFF with confirmed user hosts present:
+    popup shows NO 🚫 anywhere; SW console `getDynamicRules()` returns `[]` (user rules removed
+    while OFF); toasts stop. Flip ON: 🚫 returns, user rules re-created at ids ≥ 1000 (self-heal).
+    _(popup-ui: “Master toggle OFF respected”, “Global control count unchanged”; ad-blocking
+    semantics D5.)_
+27. **Toast is the only injection (A4)** — confirm or dismiss; DevTools → Elements: the page's own
+    DOM/CSS is untouched before, during, after (the toast lives in a closed shadow root that is
+    fully removed on dismiss; already-visible ads intentionally REMAIN — cosmetic layer out of
+    scope). _(extension-shell: “Sole Injected UI Is the Confirm Toast”, “No cosmetic action”.)_
+
 ## Sign-off
 
-- [ ] All items 1–18 pass, with item **13 (CRITICAL)** explicitly witnessed.
+- [ ] All items 1–27 pass, with item **13 (CRITICAL)** explicitly witnessed.
 - Record Chrome version + OS below: ______________________
